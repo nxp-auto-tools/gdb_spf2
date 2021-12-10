@@ -315,6 +315,7 @@ case $basic_machine in
 	| v850 | v850e | v850e1 | v850e2 | v850es | v850e2v3 \
 	| visium \
 	| we32k \
+	| spf2 \
 	| x86 | xc16x | xstormy16 | xtensa \
 	| z8k | z80)
 		basic_machine=$basic_machine-unknown
@@ -444,6 +445,7 @@ case $basic_machine in
 	| v850-* | v850e-* | v850e1-* | v850es-* | v850e2-* | v850e2v3-* \
 	| vax-* \
 	| visium-* \
+	| spf2* \
 	| we32k-* \
 	| x86-* | x86_64-* | xc16x-* | xps100-* \
 	| xstormy16-* | xtensa*-* \

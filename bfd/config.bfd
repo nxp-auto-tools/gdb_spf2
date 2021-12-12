@@ -1712,6 +1712,10 @@ case "${targ}" in
   visium-*-elf)
     targ_defvec=visium_elf32_vec
     ;;
+  spf2*)
+    targ_defvec=spf2_elf32_vec
+    want64=true
+    ;;
 
   we32k-*-*)
     targ_defvec=we32k_coff_vec

@@ -31,7 +31,7 @@
 #include "regcache.h"
 #include "regset.h"
 #include "trad-frame.h"
-#include "dwarf2/frame.h"
+#include "dwarf2-frame.h"
 #include "value.h"
 #include "spf2-tdep.h"
 #include "symtab.h"

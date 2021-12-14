@@ -212,7 +212,7 @@ spf2_elf_object_p (bfd * abfd)
 				 memspace_id = SPF2_RAWMEMSPACE_CPM;
     	 }
     	 i_shdrp[i]->sh_addr = spf2_elf_put_prefix_of_address(ELF_EF_SPF2_CORE (elf_elfheader (abfd)->e_flags), i_shdrp[i]->sh_addr, memspace_id);
-    	 bfd_set_section_vma(i_shdrp[i]->bfd_section, i_shdrp[i]->sh_addr);
+    	 bfd_set_section_vma(abfd, i_shdrp[i]->bfd_section, i_shdrp[i]->sh_addr);
      }
    }
   memspace_id = kUNKNOWN_RAWMEMSPACE;

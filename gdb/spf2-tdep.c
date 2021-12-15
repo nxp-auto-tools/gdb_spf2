@@ -270,7 +270,7 @@ spf2_skip_prologue (struct gdbarch *gdbarch, CORE_ADDR pc)
 	skip_prologue_using_sal (gdbarch, func_addr);
 
       if (post_prologue_pc != 0)
-	return std::max (pc, post_prologue_pc);
+	return max (pc, post_prologue_pc);
     }
 
    return pc;
@@ -508,7 +508,7 @@ static const struct frame_base spf2_frame_base =
 };
 
 static CORE_ADDR
-spf2_read_pc (readable_regcache *regcache)
+spf2_read_pc (struct regcache *regcache)
 {
   ULONGEST pc_value;
 
@@ -629,8 +629,8 @@ spf2_address_to_pointer (struct gdbarch *gdbarch,
   enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
 
   /* Is it a code address?  */
-  if (type->code() == TYPE_CODE_FUNC
-	   || type->code() == TYPE_CODE_METHOD)
+  if (TYPE_CODE (TYPE_TARGET_TYPE (type)) == TYPE_CODE_FUNC
+	   || TYPE_CODE (TYPE_TARGET_TYPE (type)) == TYPE_CODE_METHOD)
     {
       store_unsigned_integer (buf, TYPE_LENGTH (type), byte_order, addr);
     }
@@ -649,8 +649,8 @@ spf2_pointer_to_address (struct gdbarch *gdbarch,
     = extract_unsigned_integer (buf, TYPE_LENGTH (type), byte_order);
 
   /* Is it a code address?  */
-  if (type->code() == TYPE_CODE_FUNC
-	|| type->code() == TYPE_CODE_METHOD
+  if (TYPE_CODE (TYPE_TARGET_TYPE (type)) == TYPE_CODE_FUNC
+	|| TYPE_CODE (TYPE_TARGET_TYPE (type)) == TYPE_CODE_METHOD
 	|| TYPE_CODE_SPACE (TYPE_TARGET_TYPE (type)))
     {
 	  return spf2_make_ext_ram_addr (addr);
@@ -780,9 +780,9 @@ gdb_print_insn_spf2 (bfd_vma addr, disassemble_info *info)
              {
                 CORE_ADDR start_pc = BMSYMBOL_VALUE_ADDRESS (msym);
                 if (((target_addr  - start_pc) & 0xFFFFFFFFFull) > 0ull)
-                    (*info->fprintf_func)(info->stream, "\t< %s + 0x%x >",  msym.minsym->print_name(), (target_addr  - start_pc));
+                    (*info->fprintf_func)(info->stream, "\t< %s + 0x%x >",  MSYMBOL_PRINT_NAME (msym.minsym), (target_addr  - start_pc));
                 else
-                    (*info->fprintf_func)(info->stream, "\t< %s >", msym.minsym->print_name());
+                    (*info->fprintf_func)(info->stream, "\t< %s >", MSYMBOL_PRINT_NAME (msym.minsym));
              }
         }
     }
@@ -909,8 +909,8 @@ spf2_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   set_gdbarch_dummy_id (gdbarch, spf2_dummy_id);
 
   /* Breakpoint info */
-  set_gdbarch_breakpoint_kind_from_pc (gdbarch, spf2_breakpoint_kind_from_pc);
-  set_gdbarch_sw_breakpoint_from_kind (gdbarch, spf2_sw_breakpoint_from_kind);
+  set_gdbarch_breakpoint_from_pc (gdbarch, spf2_breakpoint_kind_from_pc);
+ // set_gdbarch_sw_breakpoint_from_kind (gdbarch, spf2_sw_breakpoint_from_kind);
 
   set_gdbarch_read_pc (gdbarch, spf2_read_pc);
   set_gdbarch_write_pc (gdbarch, spf2_write_pc);

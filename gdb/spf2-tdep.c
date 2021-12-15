@@ -106,7 +106,7 @@ spf2_register_type (struct gdbarch *gdbarch, int regnum)
 }
 
 static const gdb_byte *
-spf2_breakpoint_kind_from_pc (struct gdbarch *gdbarch, CORE_ADDR *pc)
+spf2_breakpoint_kind_from_pc (struct gdbarch *gdbarch, CORE_ADDR *pc, int *len)
 {
   //to-do: return non static value
  static CORE_ADDR instr = 2;

@@ -512,8 +512,8 @@ spf2_read_pc (struct regcache *regcache)
 {
   ULONGEST pc_value;
 
-  //regcache_cooked_read_unsigned (regcache, SPF2_PC_REGNUM, &pc_value);
-  regcache->cooked_read ( SPF2_PC_REGNUM, &pc_value);
+  regcache_cooked_read_unsigned (regcache, SPF2_PC_REGNUM, &pc_value);
+  //regcache->cooked_read ( SPF2_PC_REGNUM, &pc_value);
   SPF2_VMA_PUT_PREFIX(pc_value, SPF2_RAWMEMSPACE_EXT_RAM);
   return pc_value;
 }

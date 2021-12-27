@@ -109,8 +109,9 @@ static const gdb_byte *
 spf2_breakpoint_kind_from_pc (struct gdbarch *gdbarch, CORE_ADDR *pc, int *len)
 {
   //to-do: return non static value
- static CORE_ADDR instr = 2;
- return (gdb_byte*)&instr;
+// static CORE_ADDR instr = 2;
+// return (gdb_byte*)&instr;
+	return NULL;
 }
 
 /* Implement the sw_breakpoint_from_kind gdbarch method.  */

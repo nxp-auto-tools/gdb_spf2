@@ -90,10 +90,13 @@ static int
 spf2_dwarf_reg_to_regnum (struct gdbarch *gdbarch, int reg)
 {
   /* General purpose, address and sp registers */
-  if ((reg >= 0) && (reg <= 33))
-    return reg;
-
-  return -1;
+	  if ((reg >= 0) && (reg <= 118))
+	  {
+		  if (reg == 64)
+			  return 116;
+		  return reg;
+	  }
+return -1;
 }
 
 /* Return the GDB type object for the "standard" data type of data in

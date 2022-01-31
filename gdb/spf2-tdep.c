@@ -353,17 +353,25 @@ spf2_frame_this_id (struct frame_info *this_frame,
 static struct value *
 spf2_prev_pc_register(struct frame_info *this_frame)
 {
-
+	int frame_level;
 	CORE_ADDR retreg_val;
-	CORE_ADDR r8_val;
+	CORE_ADDR r8_val,prev_r8_val;
+	struct gdbarch *gdbarch = get_current_arch ();
+	struct type *data_ptr_type = builtin_type (gdbarch)->builtin_data_ptr;
 
-	int frame_level, jsr_stub_frame, num_inline_frames;
-	static bool skipped;
 	frame_level = frame_relative_level(this_frame);
 
 	if (frame_level){
 		r8_val = frame_unwind_register_unsigned (this_frame, SPF2_R8_REGNUM);
-		r8_val -= 4; //offset to read return address value from tack
+
+		while(frame_level > 1)
+		{
+		    prev_r8_val = read_memory_typed_address(spf2_adjust_dwarf2_data_addr(r8_val),data_ptr_type);
+		    r8_val = prev_r8_val;
+		    frame_level--;
+		}
+
+		r8_val -= 4; //offset to read return address value from stack
 		return frame_unwind_got_memory (this_frame, SPF2_PC_REGNUM, spf2_adjust_dwarf2_data_addr(r8_val));
 	}
 

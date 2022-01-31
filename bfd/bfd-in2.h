@@ -1979,6 +1979,8 @@ enum bfd_architecture
    && (mach) != bfd_mach_sparc_v8pluse \
    && (mach) != bfd_mach_sparc_v8plusv \
    && (mach) != bfd_mach_sparc_v8plusm)
+  bfd_arch_spf2,       /* CEVA SPF2.  */
+#define bfd_mach_spf2  0
   bfd_arch_spu,       /* PowerPC SPU */
 #define bfd_mach_spu           256
   bfd_arch_mips,      /* MIPS Rxxxx */

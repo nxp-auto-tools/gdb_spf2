@@ -109,7 +109,7 @@ spf2_register_type (struct gdbarch *gdbarch, int regnum)
 }
 
 static const gdb_byte *
-spf2_breakpoint_kind_from_pc (struct gdbarch *gdbarch, CORE_ADDR *pc, int *len)
+spf2_breakpoint_from_pc (struct gdbarch *gdbarch, CORE_ADDR *pc, int *len)
 {
   //to-do: return non static value
 // static CORE_ADDR instr = 2;
@@ -125,6 +125,17 @@ spf2_sw_breakpoint_from_kind (struct gdbarch *gdbarch, int kind, int *size)
 	return NULL;
 }
 
+static CORE_ADDR
+spf2_adjust_dwarf2_data_addr (CORE_ADDR data_addr)
+{
+  if (data_addr & 0xFFFFFFFF00000000ULL)
+    return data_addr;
+  else
+    if (data_addr < 0x3FFFFFULL)
+      return spf2_elf_put_prefix_of_address (bfd_mach_spf2, data_addr, SPF2_RAWMEMSPACE_INT_DRAM);
+      else
+        return spf2_elf_put_prefix_of_address (bfd_mach_spf2, data_addr, SPF2_RAWMEMSPACE_CPM);
+}
 
 static struct frame_id
 spf2_dummy_id (struct gdbarch *gdbarch, struct frame_info *this_frame)
@@ -342,22 +353,23 @@ spf2_frame_this_id (struct frame_info *this_frame,
 static struct value *
 spf2_prev_pc_register(struct frame_info *this_frame)
 {
-  CORE_ADDR hw_stack;
-  int frame_level, jsr_stub_frame, num_inline_frames;
-  static bool skipped;
 
-  hw_stack = frame_unwind_register_unsigned (this_frame, SPF2_PC_REGNUM); // should be SPF2_RAS_DEPTH_REGNUM
-  frame_level = frame_relative_level(this_frame);
-  jsr_stub_frame = spf2_skip_frame(this_frame);
-  num_inline_frames = spf2_num_inline_frames(this_frame);
-  
-  if (frame_level - num_inline_frames>=0 && frame_level - num_inline_frames<=15 && frame_level - num_inline_frames<hw_stack - jsr_stub_frame){
-      CORE_ADDR prev_pc = frame_unwind_register_unsigned (this_frame, SPF2_PC_REGNUM + frame_level - num_inline_frames + jsr_stub_frame)*2;
-      return frame_unwind_got_constant (this_frame, SPF2_PC_REGNUM, prev_pc);
-  }else{
-      return frame_unwind_got_optimized (this_frame, SPF2_PC_REGNUM);
-  }
- 
+	CORE_ADDR retreg_val;
+	CORE_ADDR r8_val;
+
+	int frame_level, jsr_stub_frame, num_inline_frames;
+	static bool skipped;
+	frame_level = frame_relative_level(this_frame);
+
+	if (frame_level){
+		r8_val = frame_unwind_register_unsigned (this_frame, SPF2_R8_REGNUM);
+		r8_val -= 4; //offset to read return address value from tack
+		return frame_unwind_got_memory (this_frame, SPF2_PC_REGNUM, spf2_adjust_dwarf2_data_addr(r8_val));
+	}
+
+	retreg_val = frame_unwind_register_unsigned (this_frame, SPF2_retreg_REGNUM);
+	return frame_unwind_got_constant (this_frame, SPF2_retreg_REGNUM, retreg_val);
+
 }
 
 /* Implement the "prev_register" frame_unwind method.  */
@@ -367,17 +379,18 @@ spf2_frame_prev_register (struct frame_info *this_frame,
 			  void **this_cache, int regnum)
 {
   struct spf2_unwind_cache *cache =
-	spf2_frame_unwind_cache (this_frame, this_cache);
-  CORE_ADDR noFrame;
-  int i;
+		spf2_frame_unwind_cache (this_frame, this_cache);
 
-  /* If we are asked to unwind the PC, then we need to return the RASx
+  /* If we are asked to unwind the PC, then we need to return the RETREG or value from stack
      instead. */
   if (regnum == SPF2_PC_REGNUM)
       return spf2_prev_pc_register(this_frame);
 
   if (regnum == SPF2_SP_REGNUM && cache->cfa)
     return frame_unwind_got_constant (this_frame, regnum, cache->cfa);
+
+  if (regnum == SPF2_R8_REGNUM && cache->cfa)
+      return frame_unwind_got_constant (this_frame, regnum, cache->cfa);
 
   /* If we've worked out where a register is stored then load it from
      there.  */
@@ -386,6 +399,7 @@ spf2_frame_prev_register (struct frame_info *this_frame,
 				    cache->reg_saved[regnum]);
 
   return frame_unwind_got_register (this_frame, regnum, regnum);
+
 }
 
 static CORE_ADDR
@@ -423,49 +437,6 @@ spf2_lastframe_this_id (struct frame_info *this_frame,
   return;
 }
 
-
-static int
-spf2_lastframe_sniffer (const struct frame_unwind *self,
-		 struct frame_info *this_frame, void **this_prologue_cache)
-{
-  CORE_ADDR hw_stack;
-  int num_inline_frames,jsr_stub_frame, frame_level;
-
-  frame_level = frame_relative_level(this_frame);
-  hw_stack = get_frame_register_unsigned (this_frame, SPF2_PC_REGNUM); // should be SPF2_RAS_DEPTH_REGNUM
-  
-  num_inline_frames = spf2_num_inline_frames(this_frame);
-  jsr_stub_frame = (hw_stack !=0) ? spf2_skip_frame(this_frame) : 0;//workaround for situation when pc is set by command on jsr instruction.
-  
-  
-  if ( frame_level !=0 && frame_level - num_inline_frames == 0)
-      return 0;//Workaround in other case will crash.
- 
-  
-  if (num_inline_frames == 0 && jsr_stub_frame == 0){
-      return (frame_level>=0 && frame_level<=15 && frame_level<hw_stack) ? 0 : 1;
-  }else if (num_inline_frames == 0 && jsr_stub_frame == 1){
-      return (frame_level>=0 && frame_level<=15 && frame_level < hw_stack -jsr_stub_frame) ? 0 : 1;
-  }else if (num_inline_frames != 0 && jsr_stub_frame == 0){
-      return (frame_level - num_inline_frames >=0 && frame_level-num_inline_frames <=15 && frame_level - num_inline_frames <= hw_stack) ? 0 : 1;
-  }else{
-      return (frame_level - num_inline_frames >=0 && frame_level-num_inline_frames <=15 && frame_level - num_inline_frames <= hw_stack-jsr_stub_frame) ? 0 : 1;
-  }
-  
-
-}
-
-/* SPF2 stop unwinder.  */
-static const struct frame_unwind spf2_lastframe_unwind =
-{
-  NORMAL_FRAME,
-  spf2_lastframe_unwind_stop_reason,
-  spf2_lastframe_this_id,
-  spf2_frame_prev_register,
-  NULL,
-  spf2_lastframe_sniffer
-};
-
 /* Return the value of the REGNUM register in the previous frame of
    *THIS_FRAME.  */
 
@@ -498,6 +469,7 @@ spf2_dwarf2_frame_init_reg (struct gdbarch *gdbarch, int regnum,
       reg->loc.fn = spf2_dwarf2_prev_register;
       break;
     case SPF2_SP_REGNUM:
+    case SPF2_R8_REGNUM:
       reg->how = DWARF2_FRAME_REG_CFA;
       break;
     }
@@ -552,17 +524,7 @@ spf2_adjust_dwarf2_data_offset (int64_t offset)
   return offset;
 }
 
-static CORE_ADDR
-spf2_adjust_dwarf2_data_addr (bfd_vma spf2_arch_type, CORE_ADDR data_addr)
-{
-  if (data_addr & 0xFFFFFFFF00000000ULL)
-    return data_addr;
-  else
-    if (data_addr < 0x3FFFFFULL)
-      return spf2_elf_put_prefix_of_address (bfd_mach_spf2, data_addr, SPF2_RAWMEMSPACE_INT_DRAM);
-      else
-        return spf2_elf_put_prefix_of_address (bfd_mach_spf2, data_addr, SPF2_RAWMEMSPACE_CPM);
-}
+
 
 static CORE_ADDR
 spf2_adjust_dwarf2_addr (CORE_ADDR pc)
@@ -913,8 +875,7 @@ spf2_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   set_gdbarch_dummy_id (gdbarch, spf2_dummy_id);
 
   /* Breakpoint info */
-  set_gdbarch_breakpoint_from_pc (gdbarch, spf2_breakpoint_kind_from_pc);
- // set_gdbarch_sw_breakpoint_from_kind (gdbarch, spf2_sw_breakpoint_from_kind);
+  set_gdbarch_breakpoint_from_pc (gdbarch, spf2_breakpoint_from_pc);
 
   set_gdbarch_read_pc (gdbarch, spf2_read_pc);
   set_gdbarch_write_pc (gdbarch, spf2_write_pc);
@@ -927,7 +888,6 @@ spf2_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   dwarf2_append_unwinders (gdbarch);
   frame_unwind_append_unwinder (gdbarch, &spf2_frame_unwind);
   frame_base_set_default (gdbarch, &spf2_frame_base);
-  frame_unwind_prepend_unwinder (gdbarch, &spf2_lastframe_unwind);
   dwarf2_frame_set_init_reg (gdbarch, spf2_dwarf2_frame_init_reg);
 
   /* Address handling.  */

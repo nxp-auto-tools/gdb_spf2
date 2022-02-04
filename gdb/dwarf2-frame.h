@@ -106,6 +106,14 @@ extern void
 				  int (*adjust_regnum) (struct gdbarch *,
 							int, int));
 
+
+/* Set the architecture-specific adjustment of .eh_frame and .debug_frame
+   offset.  */
+
+extern void
+  dwarf2_frame_set_adjust_offset (struct gdbarch *gdbarch,
+				  LONGEST (*adjust_offset) (struct gdbarch *, LONGEST));
+
 /* Append the DWARF-2 frame unwinders to GDBARCH's list.  */
 
 void dwarf2_append_unwinders (struct gdbarch *gdbarch);

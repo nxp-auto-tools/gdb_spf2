@@ -256,6 +256,7 @@ struct gdbarch
   gdbarch_elf_make_msymbol_special_ftype *elf_make_msymbol_special;
   gdbarch_coff_make_msymbol_special_ftype *coff_make_msymbol_special;
   gdbarch_make_symbol_special_ftype *make_symbol_special;
+  gdbarch_adjust_dwarf2_data_addr_ftype *adjust_dwarf2_data_addr;
   gdbarch_adjust_dwarf2_addr_ftype *adjust_dwarf2_addr;
   gdbarch_adjust_dwarf2_line_ftype *adjust_dwarf2_line;
   int cannot_step_breakpoint;
@@ -415,6 +416,7 @@ gdbarch_alloc (const struct gdbarch_info *info,
   gdbarch->coff_make_msymbol_special = default_coff_make_msymbol_special;
   gdbarch->make_symbol_special = default_make_symbol_special;
   gdbarch->adjust_dwarf2_addr = default_adjust_dwarf2_addr;
+  gdbarch->adjust_dwarf2_data_addr = default_adjust_dwarf2_data_addr;
   gdbarch->adjust_dwarf2_line = default_adjust_dwarf2_line;
   gdbarch->register_reggroup_p = default_register_reggroup_p;
   gdbarch->skip_permanent_breakpoint = default_skip_permanent_breakpoint;
@@ -3278,6 +3280,23 @@ set_gdbarch_make_symbol_special (struct gdbarch *gdbarch,
                                  gdbarch_make_symbol_special_ftype make_symbol_special)
 {
   gdbarch->make_symbol_special = make_symbol_special;
+}
+
+CORE_ADDR
+gdbarch_adjust_dwarf2_data_addr (struct gdbarch *gdbarch, CORE_ADDR data_addr)
+{
+  gdb_assert (gdbarch != NULL);
+  gdb_assert (gdbarch->adjust_dwarf2_data_addr != NULL);
+  if (gdbarch_debug >= 2)
+    fprintf_unfiltered (gdb_stdlog, "gdbarch_adjust_dwarf2_data_addr called\n");
+  return gdbarch->adjust_dwarf2_data_addr (data_addr);
+}
+
+void
+set_gdbarch_adjust_dwarf2_data_addr (struct gdbarch *gdbarch,
+                                gdbarch_adjust_dwarf2_data_addr_ftype adjust_dwarf2_data_addr)
+{
+  gdbarch->adjust_dwarf2_data_addr = adjust_dwarf2_data_addr;
 }
 
 CORE_ADDR

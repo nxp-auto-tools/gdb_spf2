@@ -748,6 +748,10 @@ typedef void (gdbarch_make_symbol_special_ftype) (struct symbol *sym, struct obj
 extern void gdbarch_make_symbol_special (struct gdbarch *gdbarch, struct symbol *sym, struct objfile *objfile);
 extern void set_gdbarch_make_symbol_special (struct gdbarch *gdbarch, gdbarch_make_symbol_special_ftype *make_symbol_special);
 
+typedef CORE_ADDR (gdbarch_adjust_dwarf2_data_addr_ftype) (CORE_ADDR data_addr);
+extern CORE_ADDR gdbarch_adjust_dwarf2_data_addr (struct gdbarch *gdbarch, CORE_ADDR data_addr);
+extern void set_gdbarch_adjust_dwarf2_data_addr (struct gdbarch *gdbarch, gdbarch_adjust_dwarf2_data_addr_ftype *adjust_dwarf2_data_addr);
+
 /* Adjust the address retrieved from a DWARF-2 record other than a line
    entry in a backend-specific way.  Normally this hook is supposed to
    return the address passed unchanged, however if that is incorrect for

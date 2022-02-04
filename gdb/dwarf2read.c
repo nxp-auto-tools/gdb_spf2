@@ -6979,7 +6979,7 @@ add_partial_symbol (struct partial_die_info *pdi, struct dwarf2_cu *cu)
 				 built_actual_name != NULL,
 				 VAR_DOMAIN, LOC_STATIC,
 				 &objfile->global_psymbols,
-				 addr + baseaddr,
+				 gdbarch_adjust_dwarf2_data_addr (gdbarch, addr + baseaddr),
 				 cu->language, objfile);
 	}
       else
@@ -6998,7 +6998,7 @@ add_partial_symbol (struct partial_die_info *pdi, struct dwarf2_cu *cu)
 			       built_actual_name != NULL,
 			       VAR_DOMAIN, LOC_STATIC,
 			       &objfile->static_psymbols,
-			       has_loc ? addr + baseaddr : (CORE_ADDR) 0,
+			       has_loc ? gdbarch_adjust_dwarf2_data_addr (gdbarch, addr + baseaddr) : (CORE_ADDR) 0,
 			       cu->language, objfile);
 	}
       break;
@@ -18325,8 +18325,8 @@ var_decode_location (struct attribute *attr, struct symbol *sym,
       unsigned int dummy;
 
       if (DW_BLOCK (attr)->data[0] == DW_OP_addr)
-	SYMBOL_VALUE_ADDRESS (sym) =
-	  read_address (objfile->obfd, DW_BLOCK (attr)->data + 1, cu, &dummy);
+	SYMBOL_VALUE_ADDRESS (sym) = gdbarch_adjust_dwarf2_data_addr (get_objfile_arch (objfile),
+	  read_address (objfile->obfd, DW_BLOCK (attr)->data + 1, cu, &dummy));
       else
 	SYMBOL_VALUE_ADDRESS (sym) =
 	  read_addr_index_from_leb128 (cu, DW_BLOCK (attr)->data + 1, &dummy);

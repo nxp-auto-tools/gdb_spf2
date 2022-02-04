@@ -717,7 +717,10 @@ execute_stack_op (struct dwarf_expr_context *ctx,
 	     index, not an address.  We don't support things like
 	     branching between the address and the TLS op.  */
 	  if (op_ptr >= op_end || *op_ptr != DW_OP_GNU_push_tls_address)
-	    result += ctx->offset;
+	    {
+		  result += ctx->offset;
+		  result = gdbarch_adjust_dwarf2_data_addr (ctx->gdbarch, result);
+	    }
 	  result_val = value_from_ulongest (address_type, result);
 	  break;
 

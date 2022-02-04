@@ -159,11 +159,17 @@ static struct dwarf2_fde *dwarf2_frame_find_fde (CORE_ADDR *pc,
 static int dwarf2_frame_adjust_regnum (struct gdbarch *gdbarch, int regnum,
 				       int eh_frame_p);
 
+static int dwarf2_frame_adjust_return_address_reg (struct gdbarch *gdbarch, int regnum,
+				       int eh_frame_p);
+
+static LONGEST dwarf2_frame_adjust_offset (struct gdbarch *gdbarch, LONGEST offset);
+
+static CORE_ADDR dwarf2_frame_adjust_line (struct gdbarch *gdbarch, CORE_ADDR addr, int rel);
+
 static CORE_ADDR read_encoded_value (struct comp_unit *unit, gdb_byte encoding,
 				     int ptr_len, const gdb_byte *buf,
 				     unsigned int *bytes_read_ptr,
 				     CORE_ADDR func_base);
-
 
 enum cfa_how_kind
 {
@@ -721,6 +727,9 @@ struct dwarf2_frame_ops
   /* Convert .eh_frame register number to DWARF register number, or
      adjust .debug_frame register number.  */
   int (*adjust_regnum) (struct gdbarch *, int, int);
+
+  /* Adjust offset from .debug_frame/.eh_frame */
+    LONGEST (*adjust_offset) (struct gdbarch *, LONGEST);
 };
 
 /* Default architecture-specific register state initialization
@@ -859,6 +868,34 @@ dwarf2_frame_adjust_regnum (struct gdbarch *gdbarch,
   if (ops->adjust_regnum == NULL)
     return regnum;
   return ops->adjust_regnum (gdbarch, regnum, eh_frame_p);
+}
+
+/* Set the architecture-specific adjustment of .eh_frame and .debug_frame
+   offset. */
+
+void
+dwarf2_frame_set_adjust_offset (struct gdbarch *gdbarch,
+				LONGEST (*adjust_offset) (struct gdbarch *,
+						      LONGEST))
+{
+  struct dwarf2_frame_ops *ops
+    = (struct dwarf2_frame_ops *) gdbarch_data (gdbarch, dwarf2_frame_data);
+
+  ops->adjust_offset = adjust_offset;
+}
+
+/* Adjust the offset from .debug_frame/.eh_frame */
+
+static LONGEST
+dwarf2_frame_adjust_offset (struct gdbarch *gdbarch,
+			    LONGEST offset)
+{
+  struct dwarf2_frame_ops *ops
+    = (struct dwarf2_frame_ops *) gdbarch_data (gdbarch, dwarf2_frame_data);
+
+  if (ops->adjust_offset == NULL)
+    return offset;
+  return ops->adjust_offset (gdbarch, offset);
 }
 
 static void

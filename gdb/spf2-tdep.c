@@ -366,7 +366,7 @@ spf2_prev_pc_register(struct frame_info *this_frame)
 
 		while(frame_level > 1)
 		{
-		    prev_r8_val = read_memory_typed_address(spf2_adjust_dwarf2_data_addr(r8_val),data_ptr_type);
+		    prev_r8_val = read_memory_typed_address(spf2_adjust_dwarf2_data_addr(r8_val), data_ptr_type);
 		    r8_val = prev_r8_val;
 		    frame_level--;
 		}
@@ -897,6 +897,7 @@ spf2_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   frame_unwind_append_unwinder (gdbarch, &spf2_frame_unwind);
   frame_base_set_default (gdbarch, &spf2_frame_base);
   dwarf2_frame_set_init_reg (gdbarch, spf2_dwarf2_frame_init_reg);
+  dwarf2_frame_set_adjust_offset (gdbarch, spf2_dwarf2_frame_adjust_offset);
 
   /* Address handling.  */
   set_gdbarch_address_to_pointer (gdbarch, spf2_address_to_pointer);

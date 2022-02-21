@@ -209,7 +209,7 @@ spf2_elf_object_p (bfd * abfd)
     		 if (i_shdrp[i]->sh_addr <  SPF2_RAWMEMSPACE_INT_DRAM_HIGH_ADDR)
 				 memspace_id = SPF2_RAWMEMSPACE_INT_DRAM;
 			 else
-				 memspace_id = SPF2_RAWMEMSPACE_CPM;
+				 memspace_id = SPF2_RAWMEMSPACE_EXT_RAM;
     	 }
     	 i_shdrp[i]->sh_addr = spf2_elf_put_prefix_of_address(ELF_EF_SPF2_CORE (elf_elfheader (abfd)->e_flags), i_shdrp[i]->sh_addr, memspace_id);
     	 bfd_set_section_vma(abfd, i_shdrp[i]->bfd_section, i_shdrp[i]->sh_addr);

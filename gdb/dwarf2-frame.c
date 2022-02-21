@@ -1369,7 +1369,7 @@ dwarf2_frame_prev_register (struct frame_info *this_frame, void **this_cache,
 			       cache->reg[regnum].exp_len,
 			       cache->addr_size, cache->text_offset,
 			       this_frame, cache->cfa, 1);
-      return frame_unwind_got_memory (this_frame, regnum, addr);
+      return frame_unwind_got_memory (this_frame, regnum, gdbarch_adjust_dwarf2_data_addr(gdbarch, addr));
 
     case DWARF2_FRAME_REG_SAVED_VAL_OFFSET:
       addr = cache->cfa + cache->reg[regnum].loc.offset;

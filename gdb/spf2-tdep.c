@@ -134,7 +134,7 @@ spf2_adjust_dwarf2_data_addr (CORE_ADDR data_addr)
     if (data_addr < 0x3FFFFFULL)
       return spf2_elf_put_prefix_of_address (bfd_mach_spf2, data_addr, SPF2_RAWMEMSPACE_INT_DRAM);
       else
-        return spf2_elf_put_prefix_of_address (bfd_mach_spf2, data_addr, SPF2_RAWMEMSPACE_CPM);
+        return spf2_elf_put_prefix_of_address (bfd_mach_spf2, data_addr, SPF2_RAWMEMSPACE_EXT_RAM);
 }
 
 static struct frame_id
@@ -247,7 +247,7 @@ spf2_analyze_prologue (struct gdbarch *gdbarch,
   // TODO: it is not implemented yet!
   CORE_ADDR pc = start_pc;
   CORE_ADDR return_pc = start_pc;
-  int frame_base_offset_to_sp = 0;
+  int frame_base_offset_to_r8 = 0;
 
   if (start_pc >= current_pc)
     return_pc = current_pc;
@@ -258,8 +258,8 @@ spf2_analyze_prologue (struct gdbarch *gdbarch,
 
     if (this_frame)
       {
-	cache->base = get_frame_register_unsigned (this_frame, SPF2_SP_REGNUM);
-	cache->cfa = cache->base + frame_base_offset_to_sp;
+	cache->base = get_frame_register_unsigned (this_frame, SPF2_R8_REGNUM);
+	cache->cfa = cache->base + frame_base_offset_to_r8;
       }
   }
 
@@ -351,34 +351,26 @@ spf2_frame_this_id (struct frame_info *this_frame,
 
 /* Implement the previous PC register. */
 static struct value *
-spf2_prev_pc_register(struct frame_info *this_frame)
+spf2_prev_pc_register(struct frame_info *this_frame, void **this_cache)
 {
 	int frame_level;
 	CORE_ADDR retreg_val;
-	CORE_ADDR r8_val,prev_r8_val;
+	CORE_ADDR prev_pc;
 	struct gdbarch *gdbarch = get_current_arch ();
 	struct type *data_ptr_type = builtin_type (gdbarch)->builtin_data_ptr;
-
 	frame_level = frame_relative_level(this_frame);
 
 	if (frame_level){
-		r8_val = frame_unwind_register_unsigned (this_frame, SPF2_R8_REGNUM);
-
-		while(frame_level > 1)
-		{
-		    prev_r8_val = read_memory_typed_address(spf2_adjust_dwarf2_data_addr(r8_val), data_ptr_type);
-		    r8_val = prev_r8_val;
-		    frame_level--;
-		}
-
-		r8_val -= 4; //offset to read return address value from stack
-		return frame_unwind_got_memory (this_frame, SPF2_PC_REGNUM, spf2_adjust_dwarf2_data_addr(r8_val));
+		struct frame_info *next_frame = get_next_frame(this_frame);
+		prev_pc = get_frame_base_address(next_frame)-4;
+		return frame_unwind_got_memory (this_frame, SPF2_PC_REGNUM, spf2_adjust_dwarf2_data_addr(prev_pc));
 	}
 
 	retreg_val = frame_unwind_register_unsigned (this_frame, SPF2_retreg_REGNUM);
 	return frame_unwind_got_constant (this_frame, SPF2_retreg_REGNUM, retreg_val);
 
 }
+
 
 /* Implement the "prev_register" frame_unwind method.  */
 
@@ -392,13 +384,10 @@ spf2_frame_prev_register (struct frame_info *this_frame,
   /* If we are asked to unwind the PC, then we need to return the RETREG or value from stack
      instead. */
   if (regnum == SPF2_PC_REGNUM)
-      return spf2_prev_pc_register(this_frame);
+      return spf2_prev_pc_register(this_frame, this_cache);
 
   if (regnum == SPF2_SP_REGNUM && cache->cfa)
     return frame_unwind_got_constant (this_frame, regnum, cache->cfa);
-
-  if (regnum == SPF2_R8_REGNUM && cache->cfa)
-      return frame_unwind_got_constant (this_frame, regnum, cache->cfa);
 
   /* If we've worked out where a register is stored then load it from
      there.  */
@@ -455,7 +444,7 @@ spf2_dwarf2_prev_register (struct frame_info *this_frame,
   switch (regnum)
     {
     case SPF2_PC_REGNUM:
-      return spf2_prev_pc_register(this_frame);
+      return spf2_prev_pc_register(this_frame, this_cache);
 
     default:
       internal_error (__FILE__, __LINE__,
@@ -476,9 +465,9 @@ spf2_dwarf2_frame_init_reg (struct gdbarch *gdbarch, int regnum,
       reg->how = DWARF2_FRAME_REG_FN;
       reg->loc.fn = spf2_dwarf2_prev_register;
       break;
-    case SPF2_SP_REGNUM:
+
     case SPF2_R8_REGNUM:
-      reg->how = DWARF2_FRAME_REG_CFA;
+      reg->how = DWARF2_FRAME_REG_SAVED_EXP;
       break;
     }
 }
@@ -871,8 +860,8 @@ spf2_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   /* Frame and stack info */
   set_gdbarch_skip_prologue (gdbarch, spf2_skip_prologue);
 
-  /* Stack grows upward - stack address is increasing.  */
-  set_gdbarch_inner_than (gdbarch, core_addr_greaterthan);
+  /* Stack grows upward - stack address is decreasing.  */
+  set_gdbarch_inner_than (gdbarch, core_addr_lessthan);
 
   /* Return value info */
   set_gdbarch_return_value(gdbarch, spf2_return_value);
@@ -900,6 +889,7 @@ spf2_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   dwarf2_frame_set_adjust_offset (gdbarch, spf2_dwarf2_frame_adjust_offset);
 
   /* Address handling.  */
+  set_gdbarch_adjust_dwarf2_data_addr (gdbarch, spf2_adjust_dwarf2_data_addr);
   set_gdbarch_address_to_pointer (gdbarch, spf2_address_to_pointer);
   set_gdbarch_pointer_to_address (gdbarch, spf2_pointer_to_address);
   set_gdbarch_integer_to_address (gdbarch, spf2_integer_to_address);

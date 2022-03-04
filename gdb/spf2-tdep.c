@@ -257,10 +257,10 @@ spf2_analyze_prologue (struct gdbarch *gdbarch,
     cache->base = 0;
 
     if (this_frame)
-      {
-	cache->base = get_frame_register_unsigned (this_frame, SPF2_R8_REGNUM);
-	cache->cfa = cache->base + frame_base_offset_to_r8;
-      }
+    {
+	 cache->base = spf2_adjust_dwarf2_data_addr(get_frame_register_unsigned (this_frame, SPF2_R8_REGNUM));
+	 cache->cfa = cache->base + frame_base_offset_to_r8;
+    }
   }
 
   return return_pc;
@@ -654,6 +654,13 @@ spf2_integer_to_address (struct gdbarch *gdbarch,
   return addr;
 }
 
+static CORE_ADDR
+spf2_convert_from_func_ptr_addr (struct gdbarch *gdbarch, CORE_ADDR addr,
+		   struct target_ops *targ)
+{
+	return spf2_make_ext_ram_addr (addr);
+}
+
 /* Implementation of `address_class_type_flags' gdbarch method.
 
    This method maps DW_AT_address_class attributes to a
@@ -898,6 +905,8 @@ spf2_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
     (gdbarch, spf2_address_class_type_flags_to_name);
   set_gdbarch_address_class_name_to_type_flags
     (gdbarch, spf2_address_class_name_to_type_flags);
+  set_gdbarch_convert_from_func_ptr_addr
+          (gdbarch, spf2_convert_from_func_ptr_addr);
 
   set_gdbarch_addressable_memory_unit_size (gdbarch, spf2_addressable_memory_unit_size);  
  

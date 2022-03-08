@@ -622,7 +622,7 @@ spf2_pointer_to_address (struct gdbarch *gdbarch,
     }
   else
     {
-	  /* Is it a data address in internal dram?  */
+	  /* Is it a data address in internal dram? */
 	        if (spf2_int_dram(addr))
 	  	{
 	  	  return spf2_make_int_dram_addr (addr);

@@ -611,6 +611,8 @@ spf2_pointer_to_address (struct gdbarch *gdbarch,
   CORE_ADDR addr
     = extract_unsigned_integer (buf, TYPE_LENGTH (type), byte_order);
 
+  addr &= 0xFFFFFFFFULL;
+
   /* Is it a code address?  */
   if (TYPE_CODE (TYPE_TARGET_TYPE (type)) == TYPE_CODE_FUNC
 	|| TYPE_CODE (TYPE_TARGET_TYPE (type)) == TYPE_CODE_METHOD

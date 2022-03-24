@@ -28,7 +28,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <setjmp.h>
+#ifdef _WIN32
+#include <minwindef.h>
 #include <windows.h>
+
 
 static T_LoadDb loadDbPtr = NULL;
 static T_DisasmIp disasmIpPtr = NULL;
@@ -80,3 +83,8 @@ print_insn_spf2 (bfd_vma addr, disassemble_info *info)
 
     return returnedSize;
 }
+#else
+print_insn_spf2 (bfd_vma addr, disassemble_info *info){
+    return 0;
+}
+#endif

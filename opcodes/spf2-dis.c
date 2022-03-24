@@ -61,19 +61,20 @@ print_insn_spf2 (bfd_vma addr, disassemble_info *info)
       dll = LoadLibrary("cevaxasmsrv.dll");
       if (!dll)
         return -1;
-
+      printf("\nORG  print_insn_spf2 win 1");
       disasmIpPtr = (T_DisasmIp *) GetProcAddress (dll, "disasmIp");
         if(!disasmIpPtr)
           return -1;
-
+      printf("\nORG  print_insn_spf2 win 2");
       loadDbPtr = (T_LoadDb) GetProcAddress(dll, "loadDb");
 
 	  if ((loadDbPtr == NULL))
 		return -1;
-
+	  printf("\nORG  print_insn_spf2 win 3");
 	  loadDbPtr("xm8", 0,NULL);
 	  dissapi_loaded = 1;
     }
+    printf("\nORG  print_insn_spf2 win 4");
     status = disasmIpPtr(instrbytes, 32, &returnedSize, inst_str, INST_STR_SIZE, NULL);
     printf("\nORG  print_insn_spf2 win end");
     if (status)

@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <setjmp.h>
-#ifdef _WIN32
+#if defined(__MINGW32__)
 #include <minwindef.h>
 #include <windows.h>
 
@@ -84,6 +84,7 @@ print_insn_spf2 (bfd_vma addr, disassemble_info *info)
     return returnedSize;
 }
 #else
+int
 print_insn_spf2 (bfd_vma addr, disassemble_info *info){
     return 0;
 }

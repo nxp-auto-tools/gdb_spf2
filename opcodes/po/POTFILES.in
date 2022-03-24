@@ -192,6 +192,8 @@ sh64-opc.c
 sh64-opc.h
 sparc-dis.c
 sparc-opc.c
+spf2-dis.c
+spf2-opc.c
 spu-dis.c
 spu-opc.c
 sysdep.h

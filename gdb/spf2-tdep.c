@@ -582,7 +582,6 @@ spf2_dwarf2_frame_adjust_line (struct gdbarch *gdbarch, CORE_ADDR addr, int rel)
   return spf2_adjust_dwarf2_line(addr, rel);
 }
 
-
 /* Convert from address to pointer and vice-versa.  */
 
 static void
@@ -733,33 +732,12 @@ int
 gdb_print_insn_spf2 (bfd_vma addr, disassemble_info *info)
 {
     int ret = 0;
-
     // set decoded instruction to none (and reset also the subroutine call address)
     info->insn_type = dis_noninsn;
     info->target = 0;
     // call decoder
-    //ret = print_insn_spf2(addr, info); TO DO: add decoder funtion print_insn_spf2
-    // if the insn is jsr, print also the function name
-    if (ret > 0)
-    {
-        // append here the function name for jsr calls
-        if ((info->insn_type == dis_jsr) ||
-                (info->insn_type == dis_branch))
-        {
-            CORE_ADDR target_addr = 0x600000000ull | info->target;
-            struct bound_minimal_symbol msym = lookup_minimal_symbol_by_pc (target_addr);
-            if (msym.minsym != NULL)
-             {
-                CORE_ADDR start_pc = BMSYMBOL_VALUE_ADDRESS (msym);
-                if (((target_addr  - start_pc) & 0xFFFFFFFFFull) > 0ull)
-                    (*info->fprintf_func)(info->stream, "\t< %s + 0x%x >",  MSYMBOL_PRINT_NAME (msym.minsym), (target_addr  - start_pc));
-                else
-                    (*info->fprintf_func)(info->stream, "\t< %s >", MSYMBOL_PRINT_NAME (msym.minsym));
-             }
-        }
-    }
+    ret = print_insn_spf2(addr, info);
     return ret;
-
 }
 
 enum return_value_convention

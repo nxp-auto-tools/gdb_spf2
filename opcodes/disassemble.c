@@ -80,6 +80,7 @@
 #define ARCH_score
 #define ARCH_sh
 #define ARCH_sparc
+#define ARCH_spf2
 #define ARCH_spu
 #define ARCH_tic30
 #define ARCH_tic4x
@@ -414,6 +415,11 @@ disassembler (bfd *abfd)
 #ifdef ARCH_sparc
     case bfd_arch_sparc:
       disassemble = print_insn_sparc;
+      break;
+#endif
+#ifdef ARCH_spf2
+    case bfd_arch_spf2:
+      disassemble = print_insn_spf2;
       break;
 #endif
 #ifdef ARCH_spu

@@ -28,7 +28,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <setjmp.h>
-#include <minwindef.h>
 #include <windows.h>
 
 static T_LoadDb loadDbPtr = NULL;

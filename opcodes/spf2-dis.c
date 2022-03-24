@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <setjmp.h>
-#if defined(__MINGW32__)
+#if (defined(__MINGW32__) ||defined(_MSC_VER))
 #include <minwindef.h>
 #include <windows.h>
 

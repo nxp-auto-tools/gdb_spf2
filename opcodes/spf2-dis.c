@@ -41,7 +41,7 @@ static T_DisasmIp disasmIpPtr = NULL;
 int
 print_insn_spf2 (bfd_vma addr, disassemble_info *info)
 {
-
+	printf("\nORG  print_insn_spf2 win");
 	static int dissapi_loaded = 0;
 	static HMODULE dll = NULL;
 	bfd_byte instrbytes[20];
@@ -75,7 +75,7 @@ print_insn_spf2 (bfd_vma addr, disassemble_info *info)
 	  dissapi_loaded = 1;
     }
     status = disasmIpPtr(instrbytes, 32, &returnedSize, inst_str, INST_STR_SIZE, NULL);
-
+    printf("\nORG  print_insn_spf2 win end");
     if (status)
       (*info->fprintf_func) (info->stream, "%s", inst_str);
     else
@@ -86,6 +86,7 @@ print_insn_spf2 (bfd_vma addr, disassemble_info *info)
 #else
 int
 print_insn_spf2 (bfd_vma addr, disassemble_info *info){
+	printf("\nORG  print_insn_spf2 linux");
     return 0;
 }
 #endif

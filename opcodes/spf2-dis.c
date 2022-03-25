@@ -23,7 +23,6 @@
 #include "dis-asm.h"
 #include "opcode/spf2.h"
 #include "spf2-dis.h"
-
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -58,7 +57,8 @@ print_insn_spf2 (bfd_vma addr, disassemble_info *info)
 
     if (!dissapi_loaded)
     {
-      dll = LoadLibrary("cevaxasmsrv.dll");
+    	printf("\nORG  print_insn_spf2 win 0");
+      dll = LoadLibrary(TEXT("cevaxasmsrv.dll"));
       if (!dll)
         return -1;
       printf("\nORG  print_insn_spf2 win 1");

@@ -42,7 +42,7 @@ print_insn_spf2 (bfd_vma addr, disassemble_info *info)
 {
 	printf("\nORG  print_insn_spf2 win");
 	static int dissapi_loaded = 0;
-	static HMODULE dll = NULL;
+	static HINSTANCE dll = NULL;
 	bfd_byte instrbytes[20];
 	int  status;
 	int returnedSize = 0;
@@ -58,6 +58,7 @@ print_insn_spf2 (bfd_vma addr, disassemble_info *info)
     if (!dissapi_loaded)
     {
     	printf("\nORG  print_insn_spf2 win 0");
+
       dll = LoadLibrary(TEXT("cevaxasmsrv.dll"));
       if (!dll)
         return -1;

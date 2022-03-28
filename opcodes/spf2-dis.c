@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <setjmp.h>
-#if (defined(__MINGW32__) ||defined(_MSC_VER))
+#if (defined(__MINGW32__) || defined(_MSC_VER))
 #include <minwindef.h>
 #include <windows.h>
 
@@ -40,7 +40,6 @@ static T_DisasmIp disasmIpPtr = NULL;
 int
 print_insn_spf2 (bfd_vma addr, disassemble_info *info)
 {
-	printf("\nORG  print_insn_spf2 win");
 	static int dissapi_loaded = 0;
 	static HINSTANCE dll = NULL;
 	bfd_byte instrbytes[20];
@@ -54,30 +53,26 @@ print_insn_spf2 (bfd_vma addr, disassemble_info *info)
 	  (*info->memory_error_func) (status, addr, info);
 	  return -1;
 	}
-
     if (!dissapi_loaded)
     {
-    	printf("\nORG  print_insn_spf2 win 0");
-
       dll = LoadLibrary(TEXT("cevaxasmsrv.dll"));
       if (!dll)
         return -1;
-      printf("\nORG  print_insn_spf2 win 1");
-      disasmIpPtr = (T_DisasmIp *) GetProcAddress (dll, "disasmIp");
-        if(!disasmIpPtr)
-          return -1;
-      printf("\nORG  print_insn_spf2 win 2");
-      loadDbPtr = (T_LoadDb) GetProcAddress(dll, "loadDb");
 
+      disasmIpPtr = (T_DisasmIp *) GetProcAddress (dll, "disasmIp");
+      if(!disasmIpPtr)
+        return -1;
+
+      loadDbPtr = (T_LoadDb) GetProcAddress(dll, "loadDb");
 	  if ((loadDbPtr == NULL))
 		return -1;
-	  printf("\nORG  print_insn_spf2 win 3");
+
 	  loadDbPtr("xm8", 0,NULL);
 	  dissapi_loaded = 1;
     }
-    printf("\nORG  print_insn_spf2 win 4");
+
     status = disasmIpPtr(instrbytes, 32, &returnedSize, inst_str, INST_STR_SIZE, NULL);
-    printf("\nORG  print_insn_spf2 win end");
+
     if (status)
       (*info->fprintf_func) (info->stream, "%s", inst_str);
     else
@@ -88,7 +83,6 @@ print_insn_spf2 (bfd_vma addr, disassemble_info *info)
 #else
 int
 print_insn_spf2 (bfd_vma addr, disassemble_info *info){
-	printf("\nORG  print_insn_spf2 linux");
     return 0;
 }
 #endif

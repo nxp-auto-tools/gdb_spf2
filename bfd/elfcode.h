@@ -1268,8 +1268,16 @@ elf_slurp_symbol_table (bfd *abfd, asymbol **symptrs, bfd_boolean dynamic)
 
 	  /* If this is a relocatable file, then the symbol value is
 	     already section relative.  */
-	  if ((abfd->flags & (EXEC_P | DYNAMIC)) != 0)
-	    sym->symbol.value -= sym->symbol.section->vma;
+	  if ((abfd->flags & (EXEC_P | DYNAMIC)) != 0){
+		  /* sym->symbol.section->vma has prefix here, but sym->symbol.value has not.
+		      As result we try calculete address with and without prefix.
+			  Workaround. Need to find why sym->symbol.value has not prefix */
+		  if (sym->symbol.section->vma & 0xFFFFFFFF00000000ULL)
+			  sym->symbol.value |= sym->symbol.section->vma & 0xFFFFFFFF00000000ULL;
+
+		  sym->symbol.value -= sym->symbol.section->vma;
+	  }
+	    //sym->symbol.value -= sym->symbol.section->vma;
 
 	  switch (ELF_ST_BIND (isym->st_info))
 	    {

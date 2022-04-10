@@ -17922,8 +17922,8 @@ dwarf_decode_lines_1 (struct line_header *lh, struct dwarf2_cu *cu,
 			    + (adj_opcode / lh->line_range))
 			   / lh->maximum_ops_per_instruction)
 			  * lh->minimum_instruction_length);
-	      state_machine.address
-		+= gdbarch_adjust_dwarf2_line (gdbarch, addr_adj, 1);
+	      state_machine.address += addr_adj;
+		  state_machine.address = gdbarch_adjust_dwarf2_line (gdbarch, state_machine.address, 1);
 	      state_machine.op_index = ((state_machine.op_index
 					 + (adj_opcode / lh->line_range))
 					% lh->maximum_ops_per_instruction);
@@ -18025,8 +18025,8 @@ dwarf_decode_lines_1 (struct line_header *lh, struct dwarf2_cu *cu,
 		addr_adj = (((state_machine.op_index + adjust)
 			     / lh->maximum_ops_per_instruction)
 			    * lh->minimum_instruction_length);
-		state_machine.address
-		  += gdbarch_adjust_dwarf2_line (gdbarch, addr_adj, 1);
+		state_machine.address += addr_adj;
+		state_machine.address = gdbarch_adjust_dwarf2_line (gdbarch, state_machine.address, 1);
 		state_machine.op_index = ((state_machine.op_index + adjust)
 					  % lh->maximum_ops_per_instruction);
 		line_ptr += bytes_read;
@@ -18095,8 +18095,8 @@ dwarf_decode_lines_1 (struct line_header *lh, struct dwarf2_cu *cu,
 		addr_adj = (((state_machine.op_index + adjust)
 			     / lh->maximum_ops_per_instruction)
 			    * lh->minimum_instruction_length);
-		state_machine.address
-		  += gdbarch_adjust_dwarf2_line (gdbarch, addr_adj, 1);
+		state_machine.address += addr_adj;
+		state_machine.address = gdbarch_adjust_dwarf2_line (gdbarch, state_machine.address, 1);
 		state_machine.op_index = ((state_machine.op_index + adjust)
 					  % lh->maximum_ops_per_instruction);
 	      }
@@ -18106,8 +18106,8 @@ dwarf_decode_lines_1 (struct line_header *lh, struct dwarf2_cu *cu,
 		CORE_ADDR addr_adj;
 
 		addr_adj = read_2_bytes (abfd, line_ptr);
-		state_machine.address
-		  += gdbarch_adjust_dwarf2_line (gdbarch, addr_adj, 1);
+		state_machine.address += addr_adj;
+		state_machine.address = gdbarch_adjust_dwarf2_line (gdbarch, state_machine.address, 1);
 		state_machine.op_index = 0;
 		line_ptr += 2;
 	      }

@@ -18,10 +18,10 @@ GDB Client for SPF2         Description: Files under GPLv3 license from NXP GDB 
                             Format: binary
                             Location: gdb-7.12-spf2
 
-Disassembly libraries for CEVA SPF2 Description: CEVA SPF2 disassembly libraries from CEVA SensPro Tools package
+CEVA SensPro Tools          Description: CEVA SPF2 disassembly libraries from CEVA SensPro Tools package
                             Version: SDT 20.3.0
                             Home Page: http://www.ceva-dsp.com/
-                            License: CEVA EULA
+                            License: BSD 3-clause "New" or "Revised" License
                             Format: libraries
                             Location: gdb-7.12-spf2
 

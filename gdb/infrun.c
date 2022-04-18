@@ -7005,6 +7005,18 @@ process_event_stop_test (struct execution_control_state *ecs)
       return;
     }
 
+  /*If code execution entered a different subroutine then keep going until we skipped prologue.
+    After that, frame info is correct and can be analyzed next time we'll stop.*/
+    if ((stop_pc < gdbarch_skip_prologue (gdbarch, stop_pc)
+  	  && (ecs->event_thread->current_line != stop_pc_sal.line)))
+    {
+      if (debug_infrun)
+        fprintf_unfiltered (gdb_stdlog,
+                   "infrun: stepping over prologue\n");
+  	  keep_going (ecs);
+  	  return;
+    }
+
   if ((stop_pc == stop_pc_sal.pc)
       && (ecs->event_thread->current_line != stop_pc_sal.line
  	  || ecs->event_thread->current_symtab != stop_pc_sal.symtab))

@@ -126,6 +126,21 @@ spf2_sw_breakpoint_from_kind (struct gdbarch *gdbarch, int kind, int *size)
 }
 
 static CORE_ADDR
+spf2_adjust_dwarf2_addr (CORE_ADDR pc)
+{
+  if (pc & 0xFFFFFFFF00000000ULL)
+	{
+	  gdb_assert ((pc & 0xFFFFFFFF00000000ULL) == (SPF2_RAWMEMSPACE_EXT_RAM<<32));
+	  return pc;
+	}
+  else
+	{
+	  return spf2_elf_put_prefix_of_address (bfd_mach_spf2, pc, SPF2_RAWMEMSPACE_EXT_RAM);
+	}
+
+}
+
+static CORE_ADDR
 spf2_adjust_dwarf2_data_addr (CORE_ADDR data_addr)
 {
   if (data_addr & 0xFFFFFFFF00000000ULL)
@@ -354,21 +369,29 @@ static struct value *
 spf2_prev_pc_register(struct frame_info *this_frame, void **this_cache)
 {
 	int frame_level;
-	CORE_ADDR retreg_val;
-	CORE_ADDR prev_pc;
+	CORE_ADDR retreg_val, retreg_p1_val;
+	CORE_ADDR prev_pc, current_pc;
+
 	struct gdbarch *gdbarch = get_current_arch ();
 	struct type *data_ptr_type = builtin_type (gdbarch)->builtin_data_ptr;
 	frame_level = frame_relative_level(this_frame);
+
 
 	if (frame_level){
 		struct frame_info *next_frame = get_next_frame(this_frame);
 		prev_pc = get_frame_base_address(next_frame)-4;
 		return frame_unwind_got_memory (this_frame, SPF2_PC_REGNUM, spf2_adjust_dwarf2_data_addr(prev_pc));
 	}
+    /* prev pc can be eighter in retreg or retreg_p1 so we need to check if we are in prologue or returned from a previous called function
+     * */
+	retreg_val    = frame_unwind_register_unsigned (this_frame, SPF2_retreg_REGNUM);
+	retreg_p1_val = frame_unwind_register_unsigned (this_frame, SPF2_retreg_p1_REGNUM);
+	current_pc    = spf2_adjust_dwarf2_addr(get_frame_register_unsigned(this_frame, SPF2_PC_REGNUM));
 
-	retreg_val = frame_unwind_register_unsigned (this_frame, SPF2_retreg_REGNUM);
-	return frame_unwind_got_constant (this_frame, SPF2_retreg_REGNUM, retreg_val);
-
+	if((retreg_val == retreg_p1_val) || (current_pc < spf2_skip_prologue(gdbarch, current_pc) ))
+		return frame_unwind_got_constant (this_frame, SPF2_retreg_REGNUM, retreg_val);
+	else
+		return frame_unwind_got_constant (this_frame, SPF2_retreg_p1_REGNUM, retreg_p1_val);
 }
 
 
@@ -523,20 +546,7 @@ spf2_adjust_dwarf2_data_offset (int64_t offset)
 
 
 
-static CORE_ADDR
-spf2_adjust_dwarf2_addr (CORE_ADDR pc)
-{    
-  if (pc & 0xFFFFFFFF00000000ULL)
-	{
-	  gdb_assert ((pc & 0xFFFFFFFF00000000ULL) == (SPF2_RAWMEMSPACE_EXT_RAM<<32));
-	  return pc;
-	}
-  else
-	{
-	  return spf2_elf_put_prefix_of_address (bfd_mach_spf2, pc, SPF2_RAWMEMSPACE_EXT_RAM);
-	}
-  
-}
+
 
 static CORE_ADDR
 spf2_adjust_dwarf2_line (CORE_ADDR addr, int rel)

@@ -46,6 +46,8 @@ print_insn_spf2 (bfd_vma addr, disassemble_info *info)
 	int  status;
 	int returnedSize = 0;
 	char inst_str[INST_STR_SIZE];
+	DecoderInfo* dInfo;
+
 
 	status = (*info->read_memory_func) (addr , instrbytes, sizeof(instrbytes), info);
     if (status != 0)
@@ -71,10 +73,19 @@ print_insn_spf2 (bfd_vma addr, disassemble_info *info)
 	  dissapi_loaded = 1;
     }
 
-    status = disasmIpPtr(instrbytes, 32, &returnedSize, inst_str, INST_STR_SIZE, NULL);
+    status = disasmIpPtr(instrbytes, 32, &returnedSize, inst_str, INST_STR_SIZE, dInfo);
 
-    if (status)
+    if (status){
       (*info->fprintf_func) (info->stream, "%s", inst_str);
+
+      if (dInfo->labelInfoArr->isCoff){
+
+		  info->insn_type = dis_branch;
+		  info->target = dInfo->opcodeInfo.instOpcodeArr;
+
+      }
+    }
+
     else
       (*info->fprintf_func) (info->stream, ".word\t0x%08lx", instrbytes);
 

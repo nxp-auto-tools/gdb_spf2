@@ -747,6 +747,25 @@ gdb_print_insn_spf2 (bfd_vma addr, disassemble_info *info)
     info->target = 0;
     // call decoder
     ret = print_insn_spf2(addr, info);
+    if (ret > 0)
+	{
+		// append here the function name for PCU.call instruction
+		if ((info->insn_type == dis_jsr) ||
+				(info->insn_type == dis_branch))
+		{
+			CORE_ADDR target_addr = 0x600000000ull | info->target;
+			/*struct bound_minimal_symbol msym = lookup_minimal_symbol_by_pc (target_addr);
+			if (msym.minsym != NULL)
+			 {
+				CORE_ADDR start_pc = BMSYMBOL_VALUE_ADDRESS (msym);
+				if (((target_addr  - start_pc) & 0x0FFFFFFFFull) > 0ull)
+					(*info->fprintf_func)(info->stream, "\t< %s + 0x%x >", MSYMBOL_PRINT_NAME (msym.minsym), (target_addr  - start_pc));
+				else
+					(*info->fprintf_func)(info->stream, "\t< %s >", MSYMBOL_PRINT_NAME (msym.minsym));
+			 }
+			 */
+		}
+	}
     return ret;
 }
 

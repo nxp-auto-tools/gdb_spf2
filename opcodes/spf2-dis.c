@@ -27,10 +27,22 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <setjmp.h>
-#if (defined(__MINGW32__) || defined(_MSC_VER))
-#include <minwindef.h>
-#include <windows.h>
 
+#if defined(_WIN32)
+	#include "windows.h"
+#else
+	#include <dlfcn.h>
+#endif
+
+#if defined(_WIN32)
+	#define K_CevaxcInlineAssembler "cevaxasmsrv.dll"
+	HINSTANCE hDll;
+#else
+	#define K_CevaxcInlineAssembler "libcevaxasmsrv.so"
+	void* hDll;
+#endif
+
+//#if (defined(__MINGW32__) || defined(_MSC_VER))
 
 static T_LoadDb loadDbPtr = NULL;
 static T_DisasmIp disasmIpPtr = NULL;
@@ -42,12 +54,19 @@ print_insn_spf2 (bfd_vma addr, disassemble_info *info)
 {
 	static int dissapi_loaded = 0;
 	static HINSTANCE dll = NULL;
-	bfd_byte instrbytes[20];
+	bfd_byte instrbytes[32];
 	int  status;
 	int returnedSize = 0;
 	char inst_str[INST_STR_SIZE];
-	DecoderInfo* dInfo;
+	DecoderInfo decoder_info;
+	int  sizeOfPacket = 0;
+	unsigned long brr_target = 0;
 
+	decoder_info.labelInfoSize = 0;
+	decoder_info.isBkrep = 0;
+	decoder_info.numOfBkrepDelaySlots = 0;
+	decoder_info.opcodeInfo.numOfCw = 0;
+	decoder_info.opcodeInfo.numOfInst = 0;
 
 	status = (*info->read_memory_func) (addr , instrbytes, sizeof(instrbytes), info);
     if (status != 0)
@@ -57,15 +76,26 @@ print_insn_spf2 (bfd_vma addr, disassemble_info *info)
 	}
     if (!dissapi_loaded)
     {
+#if defined(_WIN32)
       dll = LoadLibrary(TEXT("cevaxasmsrv.dll"));
       if (!dll)
         return -1;
+      disasmIpPtr = (T_DisasmIp *) GetProcAddress (dll, "disasmIp_objdump");
+#else
+      hDll = dlopen(K_CevaxcInlineAssembler, RTLD_NOW);
+      if (!hDll)
+        return -1;
+      disasmIpPtr = (T_DisasmIp)dlsym(hDll, "disasmIp_objdump");
+#endif
 
-      disasmIpPtr = (T_DisasmIp *) GetProcAddress (dll, "disasmIp");
       if(!disasmIpPtr)
         return -1;
 
+#if defined(_WIN32)
       loadDbPtr = (T_LoadDb) GetProcAddress(dll, "loadDb");
+#else
+      loadDbPtr = (T_LoadDb)dlsym(hDll, "loadDb");
+#endif
 	  if ((loadDbPtr == NULL))
 		return -1;
 
@@ -73,16 +103,16 @@ print_insn_spf2 (bfd_vma addr, disassemble_info *info)
 	  dissapi_loaded = 1;
     }
 
-    status = disasmIpPtr(instrbytes, 32, &returnedSize, inst_str, INST_STR_SIZE, dInfo);
+    status = disasmIpPtr(instrbytes, sizeof(instrbytes), &returnedSize, inst_str, INST_STR_SIZE, &decoder_info,
+    		addr, &brr_target, NULL);
 
-    if (status){
+    if (status)
+    {
       (*info->fprintf_func) (info->stream, "%s", inst_str);
-
-      if (dInfo->labelInfoArr->isCoff){
-
-		  info->insn_type = dis_branch;
-		  info->target = dInfo->opcodeInfo.instOpcodeArr;
-
+      if (brr_target)
+      {
+    	  info->insn_type = dis_jsr;
+    	  info->target = brr_target;
       }
     }
 
@@ -91,9 +121,3 @@ print_insn_spf2 (bfd_vma addr, disassemble_info *info)
 
     return returnedSize;
 }
-#else
-int
-print_insn_spf2 (bfd_vma addr, disassemble_info *info){
-    return 0;
-}
-#endif

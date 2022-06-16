@@ -47,8 +47,8 @@ typedef struct DecoderInfo_type
 	struct OpcodeInfo opcodeInfo;
 } DecoderInfo;
 
-
-typedef int(*T_DisasmIp) (unsigned char* buffer, int size, int *sizeOfPacket, char* asm_inst, int sizeOfStr, DecoderInfo* dInfo);
+typedef int (*T_DisasmIp) (unsigned char*d, int c, int* e, char* asm_inst, int sizeOfStr,
+   DecoderInfo* dInfo, unsigned long bundleAddress, unsigned long *targetAddress, char* sectionName);
 typedef int(*T_LoadDb) (char* a, int b,char* toolDir);
 
 

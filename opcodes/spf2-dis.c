@@ -53,7 +53,6 @@ int
 print_insn_spf2 (bfd_vma addr, disassemble_info *info)
 {
 	static int dissapi_loaded = 0;
-	static HINSTANCE dll = NULL;
 	bfd_byte instrbytes[32];
 	int  status;
 	int returnedSize = 0;
@@ -77,14 +76,17 @@ print_insn_spf2 (bfd_vma addr, disassemble_info *info)
     if (!dissapi_loaded)
     {
 #if defined(_WIN32)
-      dll = LoadLibrary(TEXT("cevaxasmsrv.dll"));
-      if (!dll)
-        return -1;
-      disasmIpPtr = (T_DisasmIp *) GetProcAddress (dll, "disasmIp_objdump");
+    	hDll = LoadLibrary(K_CevaxcInlineAssembler);
 #else
       hDll = dlopen(K_CevaxcInlineAssembler, RTLD_NOW);
+#endif
+
       if (!hDll)
         return -1;
+
+#if defined(_WIN32)
+      disasmIpPtr = (T_DisasmIp *) GetProcAddress (hDll, "disasmIp_objdump");
+#else
       disasmIpPtr = (T_DisasmIp)dlsym(hDll, "disasmIp_objdump");
 #endif
 
@@ -92,7 +94,7 @@ print_insn_spf2 (bfd_vma addr, disassemble_info *info)
         return -1;
 
 #if defined(_WIN32)
-      loadDbPtr = (T_LoadDb) GetProcAddress(dll, "loadDb");
+      loadDbPtr = (T_LoadDb) GetProcAddress(hDll, "loadDb");
 #else
       loadDbPtr = (T_LoadDb)dlsym(hDll, "loadDb");
 #endif

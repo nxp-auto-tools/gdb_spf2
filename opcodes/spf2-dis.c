@@ -42,8 +42,6 @@
 	void* hDll;
 #endif
 
-//#if (defined(__MINGW32__) || defined(_MSC_VER))
-
 static T_LoadDb loadDbPtr = NULL;
 static T_DisasmIp disasmIpPtr = NULL;
 
@@ -78,11 +76,20 @@ print_insn_spf2 (bfd_vma addr, disassemble_info *info)
 #if defined(_WIN32)
     	hDll = LoadLibrary(K_CevaxcInlineAssembler);
 #else
-      hDll = dlopen(K_CevaxcInlineAssembler, RTLD_NOW);
+        hDll = dlopen(K_CevaxcInlineAssembler, RTLD_NOW);
 #endif
 
-      if (!hDll)
-        return -1;
+      if (!hDll){
+
+#if defined(_WIN32)
+    	  fprintf(stderr, "\nCould not load disassembly library. Error code: %d", GetLastError());
+    	  fprintf(stderr, "\nCheck if path to %s is included in %%PATH%%", K_CevaxcInlineAssembler);
+#else
+    	  fprintf(stderr, "%s\n", dlerror());
+    	  fprintf(stderr, "\nCheck if path to %s is included in $LD_LIBRARY_PATH", K_CevaxcInlineAssembler);
+#endif
+    	  return -1;
+      }
 
 #if defined(_WIN32)
       disasmIpPtr = (T_DisasmIp *) GetProcAddress (hDll, "disasmIp_objdump");

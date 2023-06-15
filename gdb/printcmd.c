@@ -777,6 +777,10 @@ print_address_demangle (const struct value_print_options *opts,
 			struct gdbarch *gdbarch, CORE_ADDR addr,
 			struct ui_file *stream, int do_demangle)
 {
+  /*Print address without memory space prefix*/
+  if(gdbarch_bfd_arch_info(gdbarch)->arch == bfd_arch_spf2)
+	  addr &= 0xFFFFFFFFULL;
+
   if (opts->addressprint)
     {
       fputs_filtered (paddress (gdbarch, addr), stream);

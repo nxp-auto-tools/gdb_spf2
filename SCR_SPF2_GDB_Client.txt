@@ -1,21 +1,16 @@
 NXP Software Content Register
 
-Release Name: S32 GDB Client for SPF2
+Release Name: GDB Client for SPF2
 
 Outgoing License:           GNU General Public License v3.0 or later
 
-Binutils GDB                Description: Binutils GDB
-                            Version: 7.12.1
-                            Home Page: https://www.gnu.org/software/binutils/
+GDB Client for SPF2         Description: NXP GDB Client for SPF2
+                            Version: 7.12.1 (branch: devel-spf2, tag: GDB_SPF2-7.12.1_B0)
+                            Home Page: https://github.com/nxp-auto-tools/gdb_spf2
                             License: GNU General Public License v3.0 or later
-                            Format: binary
+                            Format: binary/source
                             Location: gdb-7.12-spf2
-
-GDB Client for SPF2         Description: Files under GPLv3 license from NXP GDB Client for SPF2
-                            Version: 7.12.1
-                            Home Page: None
-                            License: GNU General Public License v3.0 or later
-                            Format: binary
-                            Location: gdb-7.12-spf2
-
+                            Origin:
+                                GNU Binutils (GNU General Public License v3.0 or later) - https://www.gnu.org/software/binutils/
+                                Location: https://sourceware.org/git/binutils-gdb.git (tag: users/ARM/embedded-gdb-7.12-branch-2017q2)
 [end]

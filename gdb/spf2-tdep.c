@@ -1,6 +1,6 @@
 /* Target-dependent code for the SPF2.
 
-   Copyright (C) 2015-2016 Free Software Foundation, Inc.
+   Copyright (C) 2015-2016,2023 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -855,8 +855,8 @@ spf2_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   set_gdbarch_adjust_dwarf2_addr (gdbarch, spf2_adjust_dwarf2_addr);
   set_gdbarch_adjust_dwarf2_line (gdbarch, spf2_adjust_dwarf2_line);
  
-  set_gdbarch_addr_bit (gdbarch, 40);
-  set_gdbarch_ptr_bit (gdbarch, 40);
+  set_gdbarch_addr_bit (gdbarch, 36);
+  set_gdbarch_ptr_bit (gdbarch, 36);
   set_gdbarch_dwarf2_addr_size (gdbarch, 4);
 
   /* Register info */
